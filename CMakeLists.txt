@@ -4,10 +4,12 @@ project(txt_to_epub_maker)
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-aux_source_directory(includes/classes CLASSES_SRC)
+aux_source_directory(includes INCLUDES_SRC)
+aux_source_directory(utils/pugixml UTILS_PUGIXML_SRC)
 
 add_library(CommonCore STATIC
-        ${CLASSES_SRC}
+        ${INCLUDES_SRC}
+        ${UTILS_PUGIXML_SRC}
 )
 target_include_directories(CommonCore PUBLIC includes utils)
 
