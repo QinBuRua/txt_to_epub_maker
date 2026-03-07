@@ -1,0 +1,16 @@
+//
+// Created by QinBu_Rua on 2026/3/7.
+//
+
+#ifndef TXT_TO_EPUB_MAKER_INCLUDES_CLASSES_TXTTOEPUBMAKER_H
+#define TXT_TO_EPUB_MAKER_INCLUDES_CLASSES_TXTTOEPUBMAKER_H
+
+namespace QinBuRua::txt_to_epub_maker{
+
+class TxtToEpubMaker {
+
+};
+
+}
+
+#endif //TXT_TO_EPUB_MAKER_INCLUDES_CLASSES_TXTTOEPUBMAKER_H
