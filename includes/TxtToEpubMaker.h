@@ -2,15 +2,15 @@
 // Created by QinBu_Rua on 2026/3/7.
 //
 
-#ifndef TXT_TO_EPUB_MAKER_INCLUDES_CLASSES_TXTTOEPUBMAKER_H
-#define TXT_TO_EPUB_MAKER_INCLUDES_CLASSES_TXTTOEPUBMAKER_H
+#ifndef TXT_TO_EPUB_MAKER_INCLUDES_TXTTOEPUBMAKER_H
+#define TXT_TO_EPUB_MAKER_INCLUDES_TXTTOEPUBMAKER_H
+
+#include "json.hpp"
+#include "pugixml/pugixml.hpp"
 
 #include <deque>
 #include <filesystem>
 #include <string>
-
-#include "json.hpp"
-#include "pugixml/pugixml.hpp"
 
 namespace QinBuRua::txt_to_epub_maker {
 
@@ -45,7 +45,7 @@ public:
    void make_from_json(const Json& config_json);
    void generate_to(const std::string& path);
 
-public:
+private:
    Json m_Config;
    Epub m_Epub;
    Volumes m_RegisteredVolumes;
@@ -70,8 +70,9 @@ public:
    void f_generate_temp_all_xhtmls_to(const DirectoryPath& directory_path, const Volumes& volumes);
    void f_generate_temp_volume_to(const DirectoryPath& directory_path, const Volume& volume);
    void f_generate_temp_chapter_to(const FilePath& file_path, const Chapter& chapter);
+   void f_make_manifest_and_spine_to(XmlNode& manifest_node, XmlNode& spine_node);
 };
 
 }
 
-#endif //TXT_TO_EPUB_MAKER_INCLUDES_CLASSES_TXTTOEPUBMAKER_H
+#endif //TXT_TO_EPUB_MAKER_INCLUDES_TXTTOEPUBMAKER_H

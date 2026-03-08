@@ -2,13 +2,13 @@
 // Created by QinBu_Rua on 2026/3/7.
 //
 
-#include <chrono>
-#include <fstream>
-#include <ranges>
-
 #include "utfcpp/utf8.h"
 
 #include "TxtToEpubMaker.h"
+
+#include <chrono>
+#include <fstream>
+#include <ranges>
 
 namespace stdv = std::views;
 namespace stdr = std::ranges;
@@ -33,8 +33,6 @@ void TxtToEpubMaker::make_from_json(const Json& config_json) {
       throw std::runtime_error{"Fail to register volumes! Because volumes is all empty!!!"};
    }
    m_RegisteredVolumes = std::move(volumesResult.value());
-
-
 }
 
 void TxtToEpubMaker::generate_to(const std::string& path) {
@@ -78,7 +76,7 @@ TxtToEpubMaker::Xml TxtToEpubMaker::f_make_xhtml_template() {
 void TxtToEpubMaker::f_create_directory_if_not_exists(const DirectoryPath& directory_path) {
    if (!stdf::is_directory(directory_path)) {
       if (!stdf::create_directories(directory_path)) {
-         throw std::runtime_error{std::format("Fail to create directory \"{}\"", directory_path.string())};
+         throw std::runtime_error{std::format("Fail to create directory \"{}\"", directory_path.generic_string())};
       }
    }
 }
@@ -86,11 +84,11 @@ void TxtToEpubMaker::f_create_directory_if_not_exists(const DirectoryPath& direc
 void TxtToEpubMaker::f_write_to_file(const FilePath& file_path, const std::string& content) {
    std::ofstream fout{file_path};
    if (fout.fail()) {
-      throw std::runtime_error{std::format("Fail to open file \"{}\"", file_path.string())};
+      throw std::runtime_error{std::format("Fail to open file \"{}\"", file_path.generic_string())};
    }
    fout.write(content.c_str(), content.size());
    if (fout.fail()) {
-      throw std::runtime_error{std::format("Fail to write file \"{}\"", file_path.string())};
+      throw std::runtime_error{std::format("Fail to write file \"{}\"", file_path.generic_string())};
    }
 }
 
@@ -98,7 +96,7 @@ void TxtToEpubMaker::f_save_xml_file(const FilePath& file_path, const Xml& xml_d
    const DirectoryPath parentPath = file_path.parent_path();
    f_create_directory_if_not_exists(parentPath);
    if (!xml_document.save_file(file_path.c_str())) {
-      throw std::runtime_error{std::format("Fail to save xml document \"{}\"", file_path.string())};
+      throw std::runtime_error{std::format("Fail to save xml document \"{}\"", file_path.generic_string())};
    }
 }
 
@@ -254,18 +252,24 @@ void TxtToEpubMaker::f_generate_temp_to(const DirectoryPath& directory_path) {
    f_create_directory_if_not_exists(directory_path);
 
    const FilePath mimetypePath{directory_path / "mimetype"};
-   f_write_to_file(mimetypePath, m_Epub.mimetype);
 
    const DirectoryPath metaInf{directory_path / "META-INF"};
-   const FilePath containerXml{metaInf / "container.xml"};
-   f_save_xml_file(containerXml, m_Epub.meta_inf.container);
+   const FilePath containerXmlPath{metaInf / "container.xml"};
 
    const DirectoryPath oebps{directory_path / "OEBPS"};
    const FilePath contentOpf{oebps / "content.opf"};
-   f_save_xml_file(contentOpf, m_Epub.oebps.content_opf);
-
    const DirectoryPath xhtmlPath = oebps / "xhtml";
+
    f_generate_temp_all_xhtmls_to(xhtmlPath, m_RegisteredVolumes);
+
+   auto contentOpfPackage  = m_Epub.oebps.content_opf.child("package");
+   auto contentOpfManifest = contentOpfPackage.append_child("manifest");
+   auto contentOpfSpine    = contentOpfPackage.append_child("spine");
+   f_make_manifest_and_spine_to(contentOpfManifest, contentOpfSpine);
+
+   f_write_to_file(mimetypePath, m_Epub.mimetype);
+   f_save_xml_file(containerXmlPath, m_Epub.meta_inf.container);
+   f_save_xml_file(contentOpf, m_Epub.oebps.content_opf);
 }
 
 void TxtToEpubMaker::f_generate_temp_all_xhtmls_to(const DirectoryPath& directory_path, const Volumes& volumes) {
@@ -296,4 +300,22 @@ void TxtToEpubMaker::f_generate_temp_chapter_to(
 
    auto& epubBackChapters = m_Epub.oebps.xhtml.back().second;
    epubBackChapters.push_back(Chapter{chapter.first, file_path});
+}
+
+void TxtToEpubMaker::f_make_manifest_and_spine_to(XmlNode& manifest_node, XmlNode& spine_node) {
+   const auto& volumes = m_Epub.oebps.xhtml;
+   for (const auto& [indexVolume, volume] : volumes | stdv::enumerate) {
+      for (const auto& [indexCapter, chapter] : volume.second | stdv::enumerate) {
+         auto newItem      = manifest_node.append_child("item");
+         const auto itemId = std::format("volume{}chapter{}", indexVolume + 1, indexCapter + 1);
+
+         newItem.append_attribute("id")         = itemId;
+         newItem.append_attribute("href")       = chapter.second.generic_string();
+         newItem.append_attribute("media-type") = "application/xhtml+xml";
+
+         auto newItemRef = spine_node.append_child("itemref");
+
+         newItemRef.append_attribute("idref") = itemId;
+      }
+   }
 }

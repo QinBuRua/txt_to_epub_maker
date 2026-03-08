@@ -12,6 +12,7 @@ add_library(CommonCore STATIC
         ${UTILS_PUGIXML_SRC}
 )
 target_include_directories(CommonCore PUBLIC includes utils)
+target_precompile_headers(CommonCore PUBLIC utils/utfcpp/utf8.h utils/json.hpp)
 
 add_executable(AppMain
         src/main.cpp
