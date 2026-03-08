@@ -4,11 +4,13 @@ Write-Host "正在创建小说章节文件和JSON配置..." -ForegroundColor Gre
 # 设置基础路径
 $BaseDir = Join-Path $PWD.Path "TheRisingDawn"
 $CoverDir = Join-Path $BaseDir "Covers"
+$TempDir = Join-Path $BaseDir "data\temp"  # 添加临时目录
 $JsonFile = Join-Path $BaseDir "novel_config.json"
 
 # 创建必要的目录
 New-Item -ItemType Directory -Force -Path $BaseDir | Out-Null
 New-Item -ItemType Directory -Force -Path $CoverDir | Out-Null
+New-Item -ItemType Directory -Force -Path $TempDir | Out-Null  # 创建临时目录
 
 # 创建封面占位文件
 $CoverFile = Join-Path $CoverDir "the_rising_dawn.jpg"
@@ -16,7 +18,9 @@ $CoverFile = Join-Path $CoverDir "the_rising_dawn.jpg"
 
 # 定义小说数据
 $Novel = @{
-    coverUrl = $CoverFile.Replace('\', '/')  # 直接替换为/
+    bookId = "urn:uuid:123e4567-e89b-12d3-a456-426614174000"  # 添加bookId
+    tempPath = "./data/temp"  # 添加tempPath
+    coverUrl = $CoverFile.Replace('\', '/')
     novelAuthor = "John Smith"
     novelTitle = "The Rising Dawn"
     isEpub = $false
@@ -89,7 +93,7 @@ You can replace this with actual chapter content.
         # 添加到JSON章节列表（使用/作为路径分隔符）
         $JsonChapters += @{
             title = $chapter.title
-            url = $ChapterPath.Replace('\', '/')  # 直接使用/
+            url = $ChapterPath.Replace('\', '/')
         }
     }
     
@@ -100,9 +104,11 @@ You can replace this with actual chapter content.
     }
 }
 
-# 创建最终的JSON对象
+# 创建最终的JSON对象（包含bookId和tempPath）
 $FinalJson = @{
-    coverUrl = $CoverFile.Replace('\', '/')  # 直接使用/
+    bookId = $Novel.bookId
+    tempPath = $Novel.tempPath
+    coverUrl = $CoverFile.Replace('\', '/')
     novelAuthor = $Novel.novelAuthor
     novelTitle = $Novel.novelTitle
     isEpub = $Novel.isEpub
@@ -116,6 +122,8 @@ $FinalJson | ConvertTo-Json -Depth 10 | Out-File -FilePath $JsonFile -Encoding U
 Write-Host "`n创建完成！" -ForegroundColor Green
 Write-Host "目录结构：" -ForegroundColor Yellow
 Write-Host "$BaseDir\" -ForegroundColor Cyan
+Write-Host "  ├─ data\" -ForegroundColor Cyan
+Write-Host "  │   └─ temp\" -ForegroundColor Cyan
 Write-Host "  ├─ Covers\" -ForegroundColor Cyan
 Write-Host "  │   └─ the_rising_dawn.jpg" -ForegroundColor Cyan
 
@@ -140,11 +148,7 @@ Write-Host "`nJSON文件已生成: $JsonFile" -ForegroundColor Green
 # 显示JSON内容预览
 Write-Host "`nJSON预览:" -ForegroundColor Yellow
 $JsonContent = Get-Content $JsonFile -Raw
-if ($JsonContent.Length -gt 800) {
-    Write-Host ($JsonContent.Substring(0, 800) + "...") -ForegroundColor White
-} else {
-    Write-Host $JsonContent -ForegroundColor White
-}
+Write-Host $JsonContent -ForegroundColor White
 
 Write-Host "`n"
 Read-Host "按回车键退出"

@@ -171,7 +171,6 @@ std::optional<TxtToEpubMaker::Xml> TxtToEpubMaker::f_make_xhtml_from_txt(
 
    std::string line;
    std::string paragraph;
-   auto lastP = body.append_child("p");
    while (std::getline(txtFile, line)) {
       if (!line.empty()) {
          paragraph += line;
@@ -180,9 +179,8 @@ std::optional<TxtToEpubMaker::Xml> TxtToEpubMaker::f_make_xhtml_from_txt(
       if (paragraph.empty()) {
          continue;
       }
-      lastP.text().set(paragraph);
+      body.append_child("p").text().set(paragraph);
       paragraph.clear();
-      lastP = body.append_child("p");
    }
 
    if (!txtFile.eof()) {
