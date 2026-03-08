@@ -20,9 +20,11 @@ public:
    using XmlNode       = pugi::xml_node;
    using FilePath      = std::filesystem::path;
    using DirectoryPath = std::filesystem::path;
-   using FileList      = std::deque<FilePath>;
-
-   using Json = nlohmann::json;
+   using Chapter       = std::pair<std::u16string, FilePath>;
+   using Chapters      = std::deque<Chapter>;
+   using Volume        = std::pair<std::u16string, Chapters>;
+   using Volumes       = std::deque<Volume>;
+   using Json          = nlohmann::json;
 
    struct Epub {
       std::string mimetype;
@@ -34,7 +36,7 @@ public:
       struct Oebps {
          Xml content_opf;
          Xml toc;
-         FileList xhtml;
+         Volumes xhtml;
       } oebps;
    };
 
@@ -43,22 +45,31 @@ public:
    void make_from_json(const Json& config_json);
    void generate_to(const std::string& path);
 
-private:
+public:
    Json m_Config;
    Epub m_Epub;
+   Volumes m_RegisteredVolumes;
 
-   static Xml f_make_default_xml();
+   static Xml f_make_xml_template();
+   static Xml f_make_xhtml_template();
    static void f_create_directory_if_not_exists(const DirectoryPath& directory_path);
    static void f_write_to_file(const FilePath& file_path, const std::string& content);
    static void f_save_xml_file(const FilePath& file_path, const Xml& xml_document);
    static std::string f_get_current_w3c_time();
+   static std::optional<Chapter> f_register_chapter(const Json& chapter_json);
+   static std::optional<Volume> f_register_volume(const Json& volume_json);
+   static std::optional<Volumes> f_register_all_volumes(const Json& volumes_json);
+   static std::optional<Xml> f_make_xhtml_from_txt(const std::string& title, const FilePath& file_path);
 
    void f_initialize_epub();
    void f_initialize_epub_container();
    void f_initialize_epub_content_opf();
-   void f_make_metadate(XmlNode& metadata);
+   void f_make_metadate_to(XmlNode& metadata);
 
-   void f_generate_temp_to(const DirectoryPath& directory_path) const;
+   void f_generate_temp_to(const DirectoryPath& directory_path);
+   void f_generate_temp_all_xhtmls_to(const DirectoryPath& directory_path, const Volumes& volumes);
+   void f_generate_temp_volume_to(const DirectoryPath& directory_path, const Volume& volume);
+   void f_generate_temp_chapter_to(const FilePath& file_path, const Chapter& chapter);
 };
 
 }
